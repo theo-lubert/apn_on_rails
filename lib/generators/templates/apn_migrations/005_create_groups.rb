@@ -1,6 +1,6 @@
 class CreateGroups < ActiveRecord::Migration # :nodoc:
   def self.up
-    create_table :apn_groups do |t|
+    create_table :apn_groups, :force => true do |t|
       t.column :name, :string
     
       t.timestamps

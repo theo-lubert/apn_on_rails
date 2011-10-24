@@ -8,7 +8,11 @@ class APN::App < APN::Base
   has_many :unsent_group_notifications, :through => :groups
     
   def cert
-    (RAILS_ENV == 'production' ? apn_prod_cert : apn_dev_cert)
+    ((defined?(Rails) ? Rails.env : ENV['RAILS_ENV']) == 'production' ? apn_prod_cert : apn_dev_cert)
+  end
+
+  def passphrase
+    ((defined?(Rails) ? Rails.env : ENV['RAILS_ENV']) == 'production' ? apn_prod_cert_passphrase : apn_dev_cert_passphrase)
   end
   
   # Opens a connection to the Apple APN server and attempts to batch deliver
@@ -23,7 +27,7 @@ class APN::App < APN::Base
       raise APN::Errors::MissingCertificateError.new
       return
     end
-    APN::App.send_notifications_for_cert(self.cert, self.id)
+    APN::App.send_notifications_for_cert(self.cert, self.passphrase, self.id)
   end
   
   def self.send_notifications
@@ -31,13 +35,13 @@ class APN::App < APN::Base
     apps.each do |app|
       app.send_notifications
     end
-    if !configatron.apn.cert.blank?
+    if !configatron.apn.cert.blank? && File.exists?(configatron.apn.cert)
       global_cert = File.read(configatron.apn.cert)
-      send_notifications_for_cert(global_cert, nil)
+      send_notifications_for_cert(global_cert, nil, nil)
     end
   end
   
-  def self.send_notifications_for_cert(the_cert, app_id)
+  def self.send_notifications_for_cert(the_cert, passphrase, app_id)
     # unless self.unsent_notifications.nil? || self.unsent_notifications.empty?
       if (app_id == nil)
         conditions = "app_id is null"
@@ -45,7 +49,7 @@ class APN::App < APN::Base
         conditions = ["app_id = ?", app_id]
       end
       begin
-        APN::Connection.open_for_delivery({:cert => the_cert}) do |conn, sock|
+        APN::Connection.open_for_delivery({:cert => the_cert, :cert_passphrase => passphrase}) do |conn, sock|
           APN::Device.find_each(:conditions => conditions) do |dev|
             dev.unsent_notifications.each do |noty|
               conn.write(noty.message_for_sending)
@@ -55,7 +59,7 @@ class APN::App < APN::Base
           end
         end
       rescue Exception => e
-        log_connection_exception(e)
+        Rails.logger.error(e) if Rails && Rails.logger
       end
     # end   
   end
@@ -66,7 +70,7 @@ class APN::App < APN::Base
       return
     end
     unless self.unsent_group_notifications.nil? || self.unsent_group_notifications.empty? 
-      APN::Connection.open_for_delivery({:cert => self.cert}) do |conn, sock|
+      APN::Connection.open_for_delivery({:cert => self.cert, :cert_passphrase => self.passphrase}) do |conn, sock|
         unsent_group_notifications.each do |gnoty|
           gnoty.devices.find_each do |device|
             conn.write(gnoty.message_for_sending(device))
@@ -84,7 +88,7 @@ class APN::App < APN::Base
       return
     end
     unless gnoty.nil?
-      APN::Connection.open_for_delivery({:cert => self.cert}) do |conn, sock|
+      APN::Connection.open_for_delivery({:cert => self.cert, :cert_passphrase => self.passphrase}) do |conn, sock|
         gnoty.devices.find_each do |device|
           conn.write(gnoty.message_for_sending(device))
         end
@@ -124,7 +128,7 @@ class APN::App < APN::Base
     apps.each do |app|
       app.process_devices
     end
-    if !configatron.apn.cert.blank?
+    if !configatron.apn.cert.blank? && File.exists?(configatron.apn.cert)
       global_cert = File.read(configatron.apn.cert)
       APN::App.process_devices_for_cert(global_cert)
     end

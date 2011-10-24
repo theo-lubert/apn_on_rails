@@ -2,7 +2,7 @@ class CreateDeviceGroups < ActiveRecord::Migration # :nodoc:
   def self.up
     drop_table :apn_devices_apn_groups
     
-    create_table :apn_device_groupings do |t|
+    create_table :apn_device_groupings, :force => true do |t|
       t.column :group_id, :integer
       t.column :device_id, :integer
     end
@@ -15,7 +15,7 @@ class CreateDeviceGroups < ActiveRecord::Migration # :nodoc:
   def self.down
     drop_table :apn_device_groupings
   
-    create_table :apn_devices_apn_groups, :id => false do |t|
+    create_table :apn_devices_apn_groups, :id => false, :force => true do |t|
       t.column :group_id, :integer
       t.column :device_id, :integer
     end

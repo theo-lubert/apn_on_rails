@@ -2,7 +2,7 @@ class CreateApnNotifications < ActiveRecord::Migration # :nodoc:
   
   def self.up
 
-    create_table :apn_notifications do |t|
+    create_table :apn_notifications, :force => true do |t|
       t.integer :device_id, :null => false
       t.integer :errors_nb, :default => 0 # used for storing errors from apple feedbacks
       t.string :device_language, :size => 5 # if you don't want to send localized strings

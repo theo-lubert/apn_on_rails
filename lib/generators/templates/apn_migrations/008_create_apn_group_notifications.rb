@@ -2,7 +2,7 @@ class CreateApnGroupNotifications < ActiveRecord::Migration # :nodoc:
   
   def self.up
 
-    create_table :apn_group_notifications do |t|
+    create_table :apn_group_notifications, :force => true do |t|
       t.integer :group_id, :null => false
       t.string :device_language, :size => 5 # if you don't want to send localized strings
       t.string :sound

@@ -47,8 +47,13 @@ module APN
                    :passphrase => configatron.apn.passphrase,
                    :host => configatron.apn.host,
                    :port => configatron.apn.port}.merge(options)
-        #cert = File.read(options[:cert])
-        cert = options[:cert]
+        
+        if options[:cert].is_a?(String) && File.exists?(options[:cert])
+          cert = File.read(options[:cert])
+        else
+          return
+        end
+        
         ctx = OpenSSL::SSL::SSLContext.new
         ctx.key = OpenSSL::PKey::RSA.new(cert, options[:passphrase])
         ctx.cert = OpenSSL::X509::Certificate.new(cert)

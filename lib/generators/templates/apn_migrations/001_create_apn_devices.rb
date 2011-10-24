@@ -1,6 +1,6 @@
 class CreateApnDevices < ActiveRecord::Migration # :nodoc:
   def self.up
-    create_table :apn_devices do |t|
+    create_table :apn_devices, :force => true do |t|
       t.text :token, :size => 71, :null => false
 
       t.timestamps

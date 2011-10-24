@@ -1,6 +1,6 @@
 class CreatePullNotifications < ActiveRecord::Migration
   def self.up
-    create_table :apn_pull_notifications do |t|
+    create_table :apn_pull_notifications, :force => true do |t|
       t.integer :app_id
       t.string  :title
       t.string  :content
