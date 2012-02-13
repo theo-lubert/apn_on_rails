@@ -44,20 +44,16 @@ class APN::App < APN::Base
     else
       conditions = ["app_id = ?", app_id]
     end
-    begin
-      APN::Connection.open_for_delivery({:cert => the_cert}) do |conn, sock|
-        APN::Device.find_each(:conditions => conditions) do |dev|
-          dev.unsent_notifications.each do |noty|
-            conn.write(noty.message_for_sending)
-            noty.sent_at = Time.now
-            noty.save
-          end
+    APN::Connection.open_for_delivery({:cert => the_cert}) do |conn, sock|
+      APN::Device.find_each(:conditions => conditions) do |dev|
+        dev.unsent_notifications.each do |noty|
+          conn.write(noty.message_for_sending)
+          noty.sent_at = Time.now
+          noty.save
         end
       end
-    rescue Exception => e
-      log_connection_exception(e)
     end
-    # end   
+    # end
   end
 
   def send_group_notifications
