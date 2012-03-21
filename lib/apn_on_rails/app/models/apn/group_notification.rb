@@ -70,7 +70,7 @@ class APN::GroupNotification < APN::Base
   
   # Creates the binary message needed to send to Apple.
   def message_for_sending(device)
-    json = self.to_apple_json.gsub!(/\\u([0-9a-z]{4})/) {|s| [$1.to_i(16)].pack("U")} # This will create non encoded string. Otherwise the string is encoded from utf8 to ascii with unicode representation (i.e. \\u05d2)
+    json = self.to_apple_json.gsub(/\\u([0-9a-z]{4})/) {|s| [$1.to_i(16)].pack("U")} # This will create non encoded string. Otherwise the string is encoded from utf8 to ascii with unicode representation (i.e. \\u05d2)
     message = "\0\0 #{device.to_hexa}\0#{json.length.chr}#{json}"
     raise APN::Errors::ExceededMessageSizeError.new(message) if message.size.to_i > 256
     message
