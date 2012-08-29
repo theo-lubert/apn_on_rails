@@ -1,3 +1,4 @@
+# encoding: utf-8
 class APN::GroupNotification < APN::Base
   include ::ActionView::Helpers::TextHelper
   extend ::ActionView::Helpers::TextHelper
