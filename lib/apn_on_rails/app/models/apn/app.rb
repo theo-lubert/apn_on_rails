@@ -1,3 +1,4 @@
+# encoding: utf-8
 class APN::App < APN::Base
 
   has_many :groups, :class_name => 'APN::Group', :dependent => :destroy
