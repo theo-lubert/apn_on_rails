@@ -54,7 +54,7 @@ class APN::Notification < APN::Base
     result['aps']['alert'] = self.alert if self.alert
     result['aps']['badge'] = self.badge.to_i if self.badge
     if self.sound
-      result['aps']['sound'] = self.sound if self.sound.is_a? String
+      result['aps']['sound'] = self.sound if self.sound.is_a?(String) && self.sound.strip.present?
       result['aps']['sound'] = "1.aiff" if self.sound.is_a?(TrueClass)
     end
     if self.custom_properties
@@ -79,7 +79,7 @@ class APN::Notification < APN::Base
   
   # Creates the binary message needed to send to Apple.
   def message_for_sending
-    json = self.to_apple_json
+    json = self.to_apple_json.gsub(/\\u([0-9a-z]{4})/) {|s| [$1.to_i(16)].pack("U")} # This will create non encoded string. Otherwise the string is encoded from utf8 to ascii with unicode representation (i.e. \\u05d2)
     message = "\0\0 #{self.device.to_hexa}\0#{json.length.chr}#{json}"
     raise APN::Errors::ExceededMessageSizeError.new(message) if message.size.to_i > 256
     message
